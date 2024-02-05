@@ -1,0 +1,50 @@
+server:
+  port: 9009
+spring:
+  application:
+    name: smartGateway # 定义当前服务名称
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 47.106.146.101:8848 # 指定正在运行的Nacos服务器的位置
+    gateway:
+      discovery:
+        locator:
+          # 开启动态路由功能,默认值是关闭的
+          # 动态路由规则:在网关端口号后,先编写要路由目标服务器注册到Naocs的名称
+          # 在编写访问这个服务器的具体路径
+          # 例如要访问 localhost:9001/bj/show  -> http://localhost:9009/smartProjectService/smart/getList
+          enabled: true
+      # route就是路由的意思,下面就是配置路由信息
+      # 一个网关项目大多会配置很多路由
+      # 所以这个网关配置是一个List集合类型
+      routes:
+        - id: smart-project-gateway
+          uri: lb://smartProjectService
+          filters:
+            # 如果路由顺利成功,这个内置过滤器会自动在请求中添加下面的参数
+            # 属性名称为age,默认值18,如果请求中包含age的值,这个值就不会生效了
+            - AddRequestParameter=age,18
+          predicates:
+            - Path=/smart/**
+            # Query断言判断请求中是否包含指定参数名称,这里设置为username,如果没有发生404错误
+            - Query=username
+            #- Between=2023-04-21T11:25:25.967+08:00[Asia/Shanghai],2023-04-21T11:25:45.967+08:00[Asia/Shanghai]
+            # After是时间断言,判断当前请求访问时的时间是否晚于配置的时间
+            # 如果成立正常访问,如果判断不成立,返回404错误,多个断言之间是"与"的关系
+            #- After=2023-04-21T11:21:30.967+08:00[Asia/Shanghai]
+            #- Before=2023-04-21T11:23:20.967+08:00[Asia/Shanghai]
+        # List类型元素赋值时,每个元素都要以"-"开头,在这个"-"之后,
+        # 编写的所有内容,都是同一个对象的属性值
+        # id设置当前路由的名称,也是唯一标识,和其它配置没有对应关系,注意不能和之后的id名称重复即可
+        - id: gateway-beijing
+          # uri属性配置的是路由目标服务器的名称,"beijing"指注册到Nacos名称为"beijing"的模块
+          # lb就是负载均衡LoadBalance的缩写,标识路由支持负载均衡
+          uri: lb://beijing
+          # predicate是断言的意思,断言指某些条件满足时,执行某些操作
+          # predicates配置也是一个List类型的属性,所以它赋值也要以"-"开头
+          predicates:
+            # 下面是断言的内容,Path表示判断路径,"/bj/**"表示判断路径是否以"/bj/"开头
+            # 当断言条件满足时,就会按上面uri的配置,路由到该服务器模块
+            # ↓   P是大写的!!!!!
+            - Path=/bj/**

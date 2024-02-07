@@ -48,3 +48,15 @@ spring:
             # 当断言条件满足时,就会按上面uri的配置,路由到该服务器模块
             # ↓   P是大写的!!!!!
             - Path=/bj/**
+
+        - id: gateway-shanghai
+          # uri属性配置的是路由目标服务器的名称,"beijing"指注册到Nacos名称为"beijing"的模块
+          # lb就是负载均衡LoadBalance的缩写,标识路由支持负载均衡
+          uri: lb://shanghai
+          # predicate是断言的意思,断言指某些条件满足时,执行某些操作
+          # predicates配置也是一个List类型的属性,所以它赋值也要以"-"开头
+          predicates:
+            # 下面是断言的内容,Path表示判断路径,"/bj/**"表示判断路径是否以"/bj/"开头
+            # 当断言条件满足时,就会按上面uri的配置,路由到该服务器模块
+            # ↓   P是大写的!!!!!
+            - Path=/sh/**
